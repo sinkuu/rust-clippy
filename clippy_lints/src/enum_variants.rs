@@ -28,6 +28,27 @@ declare_lint! {
     "enums where all variants share a prefix/postfix"
 }
 
+/// **What it does:** Detects enumeration variants that are prefixed or suffixed
+/// by the same characters.
+///
+/// **Why is this bad?** Enumeration variant names should specify their variant,
+/// not repeat the enumeration name.
+///
+/// **Known problems:** None.
+///
+/// **Example:**
+/// ```rust
+/// enum Cake {
+///     BlackForestCake,
+///     HummingbirdCake,
+/// }
+/// ```
+declare_lint! {
+    pub PUB_ENUM_VARIANT_NAMES,
+    Allow,
+    "enums where all variants share a prefix/postfix"
+}
+
 /// **What it does:** Detects type names that are prefixed or suffixed by the
 /// containing module's name.
 ///
@@ -60,7 +81,7 @@ impl EnumVariantNames {
 
 impl LintPass for EnumVariantNames {
     fn get_lints(&self) -> LintArray {
-        lint_array!(ENUM_VARIANT_NAMES, STUTTER)
+        lint_array!(ENUM_VARIANT_NAMES, PUB_ENUM_VARIANT_NAMES, STUTTER)
     }
 }
 
@@ -85,17 +106,17 @@ fn partial_rmatch(post: &str, name: &str) -> usize {
 // FIXME: #600
 #[allow(while_let_on_iterator)]
 fn check_variant(cx: &EarlyContext, threshold: u64, def: &EnumDef, item_name: &str,
-                 item_name_chars: usize, span: Span) {
+                 item_name_chars: usize, span: Span, lint: &'static Lint) {
     if (def.variants.len() as u64) < threshold {
         return;
     }
     for var in &def.variants {
         let name = var2str(var);
         if partial_match(item_name, &name) == item_name_chars {
-            span_lint(cx, ENUM_VARIANT_NAMES, var.span, "Variant name starts with the enum's name");
+            span_lint(cx, lint, var.span, "Variant name starts with the enum's name");
         }
         if partial_rmatch(item_name, &name) == item_name_chars {
-            span_lint(cx, ENUM_VARIANT_NAMES, var.span, "Variant name ends with the enum's name");
+            span_lint(cx, lint, var.span, "Variant name ends with the enum's name");
         }
     }
     let first = var2str(&def.variants[0]);
@@ -130,7 +151,7 @@ fn check_variant(cx: &EarlyContext, threshold: u64, def: &EnumDef, item_name: &s
         (true, false) => ("post", post),
     };
     span_help_and_lint(cx,
-                       ENUM_VARIANT_NAMES,
+                       lint,
                        span,
                        &format!("All variants have the same {}fix: `{}`", what, value),
                        &format!("remove the {}fixes and use full paths to \
@@ -187,7 +208,11 @@ impl EarlyLintPass for EnumVariantNames {
             }
         }
         if let ItemKind::Enum(ref def, _) = item.node {
-            check_variant(cx, self.threshold, def, &item_name, item_name_chars, item.span);
+            let lint = match item.vis {
+                Visibility::Public => PUB_ENUM_VARIANT_NAMES,
+                _ => ENUM_VARIANT_NAMES,
+            };
+            check_variant(cx, self.threshold, def, &item_name, item_name_chars, item.span, lint);
         }
         self.modules.push(item_camel);
     }
