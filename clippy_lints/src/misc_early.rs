@@ -352,7 +352,7 @@ impl EarlyLintPass for MiscEarly {
                     }
                 }}
             }
-            _ => ()
+            _ => (),
         }
     }
 

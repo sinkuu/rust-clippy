@@ -412,8 +412,7 @@ fn check_to_owned(cx: &LateContext, expr: &Expr, other: &Expr, left: bool, op: S
 }
 
 fn is_str_arg(cx: &LateContext, args: &[P<Expr>]) -> bool {
-    args.len() == 1 &&
-        matches!(walk_ptrs_ty(cx.tcx.expr_ty(&args[0])).sty, ty::TyStr)
+    args.len() == 1 && matches!(walk_ptrs_ty(cx.tcx.expr_ty(&args[0])).sty, ty::TyStr)
 }
 
 /// Heuristic to see if an expression is used. Should be compatible with `unused_variables`'s idea
@@ -434,16 +433,15 @@ fn is_used(cx: &LateContext, expr: &Expr) -> bool {
 /// `#[derive(...)`] or the like).
 fn in_attributes_expansion(cx: &LateContext, expr: &Expr) -> bool {
     cx.sess().codemap().with_expn_info(expr.span.expn_id, |info_opt| {
-        info_opt.map_or(false, |info| {
-            matches!(info.callee.format, ExpnFormat::MacroAttribute(_))
-        })
+        info_opt.map_or(false, |info| matches!(info.callee.format, ExpnFormat::MacroAttribute(_)))
     })
 }
 
 /// Test whether `def` is a variable defined outside a macro.
 fn non_macro_local(cx: &LateContext, def: &def::Def) -> bool {
     match *def {
-        def::Def::Local(id) | def::Def::Upvar(id, _, _) => {
+        def::Def::Local(id) |
+        def::Def::Upvar(id, _, _) => {
             let id = cx.tcx.map.as_local_node_id(id).expect("That DefId should be valid");
 
             if let Some(span) = cx.tcx.map.opt_span(id) {

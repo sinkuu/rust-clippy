@@ -164,11 +164,11 @@ pub fn match_impl_method(cx: &LateContext, expr: &Expr, path: &[&str]) -> bool {
     let method_call = ty::MethodCall::expr(expr.id);
 
     let trt_id = cx.tcx
-                   .tables
-                   .borrow()
-                   .method_map
-                   .get(&method_call)
-                   .and_then(|callee| cx.tcx.impl_of_method(callee.def_id));
+        .tables
+        .borrow()
+        .method_map
+        .get(&method_call)
+        .and_then(|callee| cx.tcx.impl_of_method(callee.def_id));
     if let Some(trt_id) = trt_id {
         match_def_path(cx, trt_id, path)
     } else {
@@ -181,11 +181,11 @@ pub fn match_trait_method(cx: &LateContext, expr: &Expr, path: &[&str]) -> bool 
     let method_call = ty::MethodCall::expr(expr.id);
 
     let trt_id = cx.tcx
-                   .tables
-                   .borrow()
-                   .method_map
-                   .get(&method_call)
-                   .and_then(|callee| cx.tcx.trait_of_item(callee.def_id));
+        .tables
+        .borrow()
+        .method_map
+        .get(&method_call)
+        .and_then(|callee| cx.tcx.trait_of_item(callee.def_id));
     if let Some(trt_id) = trt_id {
         match_def_path(cx, trt_id, path)
     } else {
@@ -221,7 +221,10 @@ pub fn path_to_def(cx: &LateContext, path: &[&str]) -> Option<def::Def> {
     let crates = cstore.crates();
     let krate = crates.iter().find(|&&krate| cstore.crate_name(krate) == path[0]);
     if let Some(krate) = krate {
-        let krate = DefId { krate: *krate, index: CRATE_DEF_INDEX };
+        let krate = DefId {
+            krate: *krate,
+            index: CRATE_DEF_INDEX,
+        };
         let mut items = cstore.item_children(krate);
         let mut path_it = path.iter().skip(1).peekable();
 
@@ -367,32 +370,32 @@ pub fn trim_multiline(s: Cow<str>, ignore_first: bool) -> Cow<str> {
 
 fn trim_multiline_inner(s: Cow<str>, ignore_first: bool, ch: char) -> Cow<str> {
     let x = s.lines()
-             .skip(ignore_first as usize)
-             .filter_map(|l| {
-                 if l.is_empty() {
-                     None
-                 } else {
-                     // ignore empty lines
-                     Some(l.char_indices()
-                           .find(|&(_, x)| x != ch)
-                           .unwrap_or((l.len(), ch))
-                           .0)
-                 }
-             })
-             .min()
-             .unwrap_or(0);
+        .skip(ignore_first as usize)
+        .filter_map(|l| {
+            if l.is_empty() {
+                None
+            } else {
+                // ignore empty lines
+                Some(l.char_indices()
+                    .find(|&(_, x)| x != ch)
+                    .unwrap_or((l.len(), ch))
+                    .0)
+            }
+        })
+        .min()
+        .unwrap_or(0);
     if x > 0 {
         Cow::Owned(s.lines()
-                    .enumerate()
-                    .map(|(i, l)| {
-                        if (ignore_first && i == 0) || l.is_empty() {
-                            l
-                        } else {
-                            l.split_at(x).1
-                        }
-                    })
-                    .collect::<Vec<_>>()
-                    .join("\n"))
+            .enumerate()
+            .map(|(i, l)| {
+                if (ignore_first && i == 0) || l.is_empty() {
+                    l
+                } else {
+                    l.split_at(x).1
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n"))
     } else {
         s
     }
@@ -593,9 +596,9 @@ fn parse_attrs<F: FnMut(u64)>(sess: &Session, attrs: &[ast::Attribute], name: &'
 pub fn is_expn_of(cx: &LateContext, mut span: Span, name: &str) -> Option<Span> {
     loop {
         let span_name_span = cx.tcx
-                               .sess
-                               .codemap()
-                               .with_expn_info(span.expn_id, |expn| expn.map(|ei| (ei.callee.name(), ei.call_site)));
+            .sess
+            .codemap()
+            .with_expn_info(span.expn_id, |expn| expn.map(|ei| (ei.callee.name(), ei.call_site)));
 
         match span_name_span {
             Some((mac_name, new_span)) if mac_name.as_str() == name => return Some(new_span),
@@ -614,9 +617,9 @@ pub fn is_expn_of(cx: &LateContext, mut span: Span, name: &str) -> Option<Span> 
 /// `is_direct_expn_of`.
 pub fn is_direct_expn_of(cx: &LateContext, span: Span, name: &str) -> Option<Span> {
     let span_name_span = cx.tcx
-                           .sess
-                           .codemap()
-                           .with_expn_info(span.expn_id, |expn| expn.map(|ei| (ei.callee.name(), ei.call_site)));
+        .sess
+        .codemap()
+        .with_expn_info(span.expn_id, |expn| expn.map(|ei| (ei.callee.name(), ei.call_site)));
 
     match span_name_span {
         Some((mac_name, new_span)) if mac_name.as_str() == name => Some(new_span),
@@ -697,7 +700,8 @@ pub fn return_ty<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, fn_item: NodeId) -> ty::T
 /// Check if two types are the same.
 // FIXME: this works correctly for lifetimes bounds (`for <'a> Foo<'a>` == `for <'b> Foo<'b>` but
 // not for type parameters.
-pub fn same_tys<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, a: ty::Ty<'tcx>, b: ty::Ty<'tcx>, parameter_item: NodeId) -> bool {
+pub fn same_tys<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, a: ty::Ty<'tcx>, b: ty::Ty<'tcx>, parameter_item: NodeId)
+                          -> bool {
     let parameter_env = ty::ParameterEnvironment::for_item(cx.tcx, parameter_item);
     cx.tcx.infer_ctxt(None, Some(parameter_env), Reveal::All).enter(|infcx| {
         let new_a = a.subst(infcx.tcx, infcx.parameter_environment.free_substs);
@@ -726,14 +730,17 @@ pub fn is_refutable(cx: &LateContext, pat: &Pat) -> bool {
         matches!(cx.tcx.def_map.borrow().get(&did).map(|d| d.full_def()), Some(def::Def::Variant(..)))
     }
 
-    fn are_refutable<'a, I: Iterator<Item=&'a Pat>>(cx: &LateContext, mut i: I) -> bool {
+    fn are_refutable<'a, I: Iterator<Item = &'a Pat>>(cx: &LateContext, mut i: I) -> bool {
         i.any(|pat| is_refutable(cx, pat))
     }
 
     match pat.node {
-        PatKind::Binding(..) | PatKind::Wild => false,
-        PatKind::Box(ref pat) | PatKind::Ref(ref pat, _) => is_refutable(cx, pat),
-        PatKind::Lit(..) | PatKind::Range(..) => true,
+        PatKind::Binding(..) |
+        PatKind::Wild => false,
+        PatKind::Box(ref pat) |
+        PatKind::Ref(ref pat, _) => is_refutable(cx, pat),
+        PatKind::Lit(..) |
+        PatKind::Range(..) => true,
         PatKind::Path(..) => is_enum_variant(cx, pat.id),
         PatKind::Tuple(ref pats, _) => are_refutable(cx, pats.iter().map(|pat| &**pat)),
         PatKind::Struct(_, ref fields, _) => {

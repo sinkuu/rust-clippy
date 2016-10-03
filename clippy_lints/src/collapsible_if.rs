@@ -151,7 +151,8 @@ fn expr_block(block: &ast::Block) -> Option<&ast::Expr> {
 
     if let (Some(stmt), None) = (it.next(), it.next()) {
         match stmt.node {
-            ast::StmtKind::Expr(ref expr) | ast::StmtKind::Semi(ref expr) => Some(expr),
+            ast::StmtKind::Expr(ref expr) |
+            ast::StmtKind::Semi(ref expr) => Some(expr),
             _ => None,
         }
     } else {

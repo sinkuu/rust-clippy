@@ -72,18 +72,15 @@ pub fn strip_doc_comment_decoration((comment, span): (&str, Span)) -> Vec<(&str,
     }
 
     if comment.starts_with("/*") {
-        return comment[3..comment.len() - 2].lines().map(|line| {
-            let offset = line.as_ptr() as usize - comment.as_ptr() as usize;
-            debug_assert_eq!(offset as u32 as usize, offset);
+        return comment[3..comment.len() - 2]
+            .lines()
+            .map(|line| {
+                let offset = line.as_ptr() as usize - comment.as_ptr() as usize;
+                debug_assert_eq!(offset as u32 as usize, offset);
 
-            (
-                line,
-                Span {
-                    lo: span.lo + BytePos(offset as u32),
-                    ..span
-                }
-            )
-        }).collect();
+                (line, Span { lo: span.lo + BytePos(offset as u32), ..span })
+            })
+            .collect();
     }
 
     panic!("not a doc-comment: {}", comment);

@@ -29,9 +29,9 @@ pub const ONE: Sugg<'static> = Sugg::NonParen(Cow::Borrowed("1"));
 impl<'a> Display for Sugg<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         match *self {
-            Sugg::NonParen(ref s) | Sugg::MaybeParen(ref s) | Sugg::BinOp(_, ref s) => {
-                s.fmt(f)
-            }
+            Sugg::NonParen(ref s) |
+            Sugg::MaybeParen(ref s) |
+            Sugg::BinOp(_, ref s) => s.fmt(f),
         }
     }
 }
@@ -168,11 +168,13 @@ impl<'a> Sugg<'a> {
         match self {
             Sugg::NonParen(..) => self,
             // (x) and (x).y() both don't need additional parens
-            Sugg::MaybeParen(sugg) => if sugg.starts_with('(') && sugg.ends_with(')') {
-                Sugg::MaybeParen(sugg)
-            } else {
-                Sugg::NonParen(format!("({})", sugg).into())
-            },
+            Sugg::MaybeParen(sugg) => {
+                if sugg.starts_with('(') && sugg.ends_with(')') {
+                    Sugg::MaybeParen(sugg)
+                } else {
+                    Sugg::NonParen(format!("({})", sugg).into())
+                }
+            }
             Sugg::BinOp(_, sugg) => Sugg::NonParen(format!("({})", sugg).into()),
         }
     }
@@ -334,12 +336,31 @@ fn associativity(op: &AssocOp) -> Associativity {
     use syntax::util::parser::AssocOp::*;
 
     match *op {
-        Inplace | Assign | AssignOp(_) => Associativity::Right,
-        Add | BitAnd | BitOr | BitXor | LAnd | LOr | Multiply |
-        As | Colon => Associativity::Both,
-    Divide | Equal | Greater | GreaterEqual | Less | LessEqual | Modulus | NotEqual | ShiftLeft |
-        ShiftRight | Subtract => Associativity::Left,
-        DotDot | DotDotDot => Associativity::None
+        Assign |
+        AssignOp(_) |
+        Inplace => Associativity::Right,
+        Add |
+        As |
+        BitAnd |
+        BitOr |
+        BitXor |
+        Colon |
+        LAnd |
+        LOr |
+        Multiply => Associativity::Both,
+        Divide |
+        Equal |
+        Greater |
+        GreaterEqual |
+        Less |
+        LessEqual |
+        Modulus |
+        NotEqual |
+        ShiftLeft |
+        ShiftRight |
+        Subtract => Associativity::Left,
+        DotDot |
+        DotDotDot => Associativity::None
     }
 }
 
@@ -413,7 +434,7 @@ pub trait DiagnosticBuilderExt<T: LintContext> {
     /// ```rust
     /// db.suggest_item_with_attr(cx, item, "#[derive(Default)]");
     /// ```
-    fn suggest_item_with_attr<D: Display+?Sized>(&mut self, cx: &T, item: Span, msg: &str, attr: &D);
+    fn suggest_item_with_attr<D: Display + ?Sized>(&mut self, cx: &T, item: Span, msg: &str, attr: &D);
 
     /// Suggest to add an item before another.
     ///
@@ -431,7 +452,7 @@ pub trait DiagnosticBuilderExt<T: LintContext> {
 }
 
 impl<'a, 'b, T: LintContext> DiagnosticBuilderExt<T> for rustc_errors::DiagnosticBuilder<'b> {
-    fn suggest_item_with_attr<D: Display+?Sized>(&mut self, cx: &T, item: Span, msg: &str, attr: &D) {
+    fn suggest_item_with_attr<D: Display + ?Sized>(&mut self, cx: &T, item: Span, msg: &str, attr: &D) {
         if let Some(indent) = indentation(cx, item) {
             let span = Span {
                 hi: item.lo,

@@ -78,7 +78,10 @@ pub struct EnumVariantNames {
 
 impl EnumVariantNames {
     pub fn new(threshold: u64) -> EnumVariantNames {
-        EnumVariantNames { modules: Vec::new(), threshold: threshold }
+        EnumVariantNames {
+            modules: Vec::new(),
+            threshold: threshold,
+        }
     }
 }
 
@@ -200,7 +203,10 @@ impl EarlyLintPass for EnumVariantNames {
                 if !mod_camel.is_empty() {
                     if mod_name == &item_name {
                         if let ItemKind::Mod(..) = item.node {
-                            span_lint(cx, MODULE_INCEPTION, item.span, "module has the same name as its containing module");
+                            span_lint(cx,
+                                      MODULE_INCEPTION,
+                                      item.span,
+                                      "module has the same name as its containing module");
                         }
                     }
                     if item.vis == Visibility::Public {

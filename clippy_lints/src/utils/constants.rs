@@ -7,6 +7,7 @@
 /// See also [the reference][reference-types] for a list of such types.
 ///
 /// [reference-types]: https://doc.rust-lang.org/reference.html#types
+#[cfg_attr(rustfmt, rustfmt_skip)]
 pub const BUILTIN_TYPES: &'static [&'static str] = &[
     "i8", "u8",
     "i16", "u16",

@@ -211,7 +211,7 @@ impl LateLintPass for UnitCmp {
                                            op.as_str(),
                                            result));
                     }
-                    _ => ()
+                    _ => (),
                 }
             }
         }

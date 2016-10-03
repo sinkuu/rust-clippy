@@ -291,7 +291,7 @@ fn check_match_bool(cx: &LateContext, ex: &Expr, arms: &[Arm], expr: &Expr) {
                 }
             }
 
-       });
+        });
     }
 }
 

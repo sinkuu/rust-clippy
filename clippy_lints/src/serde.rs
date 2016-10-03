@@ -38,7 +38,7 @@ impl LateLintPass for Serde {
                         match &*item.name.as_str() {
                             "visit_str" => seen_str = Some(item.span),
                             "visit_string" => seen_string = Some(item.span),
-                            _ => {},
+                            _ => (),
                         }
                     }
                     if let Some(span) = seen_string {

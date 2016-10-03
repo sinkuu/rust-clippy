@@ -148,7 +148,9 @@ impl LateLintPass for BoolComparison {
                                        e.span,
                                        "equality checks against false can be replaced by a negation",
                                        |db| {
-                                           db.span_suggestion(e.span, "try simplifying it as shown:", (!hint).to_string());
+                                           db.span_suggestion(e.span,
+                                                              "try simplifying it as shown:",
+                                                              (!hint).to_string());
                                        });
                 }
                 (Other, Bool(false)) => {
@@ -158,7 +160,9 @@ impl LateLintPass for BoolComparison {
                                        e.span,
                                        "equality checks against false can be replaced by a negation",
                                        |db| {
-                                           db.span_suggestion(e.span, "try simplifying it as shown:", (!hint).to_string());
+                                           db.span_suggestion(e.span,
+                                                              "try simplifying it as shown:",
+                                                              (!hint).to_string());
                                        });
                 }
                 _ => (),

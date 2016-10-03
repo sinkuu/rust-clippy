@@ -597,11 +597,11 @@ fn check_for_loop_arg(cx: &LateContext, pat: &Pat, arg: &Expr, expr: &Expr) {
                                        method_name));
                 }
             } else if method_name.as_str() == "into_iter" && match_trait_method(cx, arg, &paths::INTO_ITERATOR) {
-                    let object = snippet(cx, args[0].span, "_");
-                    span_lint(cx,
-                              EXPLICIT_INTO_ITER_LOOP,
-                              expr.span,
-                              &format!("it is more idiomatic to loop over `{}` instead of `{}.{}()`",
+                let object = snippet(cx, args[0].span, "_");
+                span_lint(cx,
+                          EXPLICIT_INTO_ITER_LOOP,
+                          expr.span,
+                          &format!("it is more idiomatic to loop over `{}` instead of `{}.{}()`",
                                        object,
                                        object,
                                        method_name));
@@ -900,7 +900,8 @@ fn extract_first_expr(block: &Block) -> Option<&Expr> {
         Some(ref expr) if block.stmts.is_empty() => Some(expr),
         None if !block.stmts.is_empty() => {
             match block.stmts[0].node {
-                StmtExpr(ref expr, _) | StmtSemi(ref expr, _) => Some(expr),
+                StmtExpr(ref expr, _) |
+                StmtSemi(ref expr, _) => Some(expr),
                 StmtDecl(..) => None,
             }
         }

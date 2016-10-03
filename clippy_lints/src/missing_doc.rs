@@ -51,9 +51,7 @@ impl ::std::default::Default for MissingDoc {
 
 impl MissingDoc {
     pub fn new() -> MissingDoc {
-        MissingDoc {
-            doc_hidden_stack: vec![false],
-        }
+        MissingDoc { doc_hidden_stack: vec![false] }
     }
 
     fn doc_hidden(&self) -> bool {
@@ -82,7 +80,8 @@ impl MissingDoc {
 
         let has_doc = attrs.iter().any(|a| a.is_value_str() && a.name() == "doc");
         if !has_doc {
-            cx.span_lint(MISSING_DOCS_IN_PRIVATE_ITEMS, sp,
+            cx.span_lint(MISSING_DOCS_IN_PRIVATE_ITEMS,
+                         sp,
                          &format!("missing documentation for {}", desc));
         }
     }
@@ -96,8 +95,10 @@ impl LintPass for MissingDoc {
 
 impl LateLintPass for MissingDoc {
     fn enter_lint_attrs(&mut self, _: &LateContext, attrs: &[ast::Attribute]) {
-        let doc_hidden = self.doc_hidden() || attrs.iter().any(|attr| {
-            attr.check_name("doc") && match attr.meta_item_list() {
+        let doc_hidden = self.doc_hidden() ||
+                         attrs.iter().any(|attr| {
+            attr.check_name("doc") &&
+            match attr.meta_item_list() {
                 None => false,
                 Some(l) => attr::list_contains_name(&l[..], "hidden"),
             }
@@ -154,7 +155,7 @@ impl LateLintPass for MissingDoc {
             ty::TraitContainer(_) => return,
             ty::ImplContainer(cid) => {
                 if cx.tcx.impl_trait_ref(cid).is_some() {
-                    return
+                    return;
                 }
             }
         }
