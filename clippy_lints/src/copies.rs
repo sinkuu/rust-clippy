@@ -210,7 +210,7 @@ fn lint_match_arms(cx: &LateContext, expr: &Expr) {
                                      &format!("`{}` has the same arm body as the `_` wildcard, consider removing it`",
                                               lhs));
                     } else {
-                        db.span_note(i.body.span, &format!("consider refactoring into `{} | {}`", lhs, rhs));
+                        db.span_note(i.pats[0].span, &format!("consider refactoring into `{} | {}`", lhs, rhs));
                     }
                 }
             });

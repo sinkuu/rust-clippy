@@ -194,10 +194,10 @@ note: same as this
 255 |         42 => foo(),
     |               ^^^^^
 note: consider refactoring into `42 | 51`
-   --> $DIR/copies.rs:255:15
+   --> $DIR/copies.rs:255:9
     |
 255 |         42 => foo(),
-    |               ^^^^^
+    |         ^^
 
 error: this `match` has identical arm bodies
    --> $DIR/copies.rs:266:17
@@ -211,10 +211,10 @@ note: same as this
 263 |         Some(_) => 24,
     |                    ^^
 note: consider refactoring into `Some(_) | None`
-   --> $DIR/copies.rs:263:20
+   --> $DIR/copies.rs:263:9
     |
 263 |         Some(_) => 24,
-    |                    ^^
+    |         ^^^^^^^
 
 error: this `match` has identical arm bodies
    --> $DIR/copies.rs:290:28
@@ -228,10 +228,10 @@ note: same as this
 287 |         (Some(a), None) => bar(a),
     |                            ^^^^^^
 note: consider refactoring into `(Some(a), None) | (None, Some(a))`
-   --> $DIR/copies.rs:287:28
+   --> $DIR/copies.rs:287:9
     |
 287 |         (Some(a), None) => bar(a),
-    |                            ^^^^^^
+    |         ^^^^^^^^^^^^^^^
 
 error: this `match` has identical arm bodies
    --> $DIR/copies.rs:298:26
@@ -245,10 +245,10 @@ note: same as this
 295 |         (Some(a), ..) => bar(a),
     |                          ^^^^^^
 note: consider refactoring into `(Some(a), ..) | (.., Some(a))`
-   --> $DIR/copies.rs:295:26
+   --> $DIR/copies.rs:295:9
     |
 295 |         (Some(a), ..) => bar(a),
-    |                          ^^^^^^
+    |         ^^^^^^^^^^^^^
 
 error: this `match` has identical arm bodies
    --> $DIR/copies.rs:306:20
@@ -262,10 +262,10 @@ note: same as this
 303 |         (1, .., 3) => 42,
     |                       ^^
 note: consider refactoring into `(1, .., 3) | (.., 3)`
-   --> $DIR/copies.rs:303:23
+   --> $DIR/copies.rs:303:9
     |
 303 |         (1, .., 3) => 42,
-    |                       ^^
+    |         ^^^^^^^^^^
 
 error: this `if` has identical blocks
    --> $DIR/copies.rs:313:12
