@@ -48,6 +48,13 @@ fn main() {
     if let Ok(x) = Ok::<i32,i32>(42) {
         println!("{}", x);
     }
+
+    distinct_source().unwrap();
 }
 
+fn distinct_source() -> Result<(), ()> {
+    if let Some(_) = try!(Ok(Some(1))) {
+    }
 
+    Ok(())
+}

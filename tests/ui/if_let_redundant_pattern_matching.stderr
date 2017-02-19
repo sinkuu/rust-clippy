@@ -43,5 +43,12 @@ error: redundant pattern matching, consider using `is_some()`
 help: try this
    |     if Some(42).is_some() {
 
-error: aborting due to 4 previous errors
+error: redundant pattern matching, consider using `is_some()`
+  --> $DIR/if_let_redundant_pattern_matching.rs:56:12
+   |
+56 |     if let Some(_) = try!(Ok(Some(1))) {
+   |            ^^^^^^^
+   |
+   = note: #[deny(if_let_redundant_pattern_matching)] implied by #[deny(clippy)]
 
+error: aborting due to 5 previous errors

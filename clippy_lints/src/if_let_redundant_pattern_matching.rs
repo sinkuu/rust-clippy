@@ -77,7 +77,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for Pass {
                         hi: op.span.hi,
                         expn_id: expr.span.expn_id,
                     };
-                    db.span_suggestion(span, "try this", format!("if {}.{}", snippet(cx, op.span, "_"), good_method));
+                    if expr.span.expn_id == op.span.expn_id {
+                        db.span_suggestion(span, "try this", format!("if {}.{}", snippet(cx, op.span, "_"), good_method));
+                    }
                 });
             }
 
