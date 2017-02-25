@@ -9,7 +9,7 @@ use rustc::middle::mem_categorization as mc;
 use syntax::ast::NodeId;
 use syntax_pos::Span;
 use syntax::errors::DiagnosticBuilder;
-use utils::{in_macro, is_self, is_copy, implements_trait, get_trait_def_id, match_type, snippet, span_lint_and_then,
+use utils::{in_macro, is_self, is_copy, implements_trait, match_type, snippet, span_lint_and_then,
             multispan_sugg, paths};
 use std::collections::{HashSet, HashMap};
 
@@ -61,13 +61,17 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
 
         // Allows these to be passed by value.
         let fn_trait = cx.tcx.lang_items.fn_trait().expect("failed to find `Fn` trait");
-        let asref_trait = get_trait_def_id(cx, &paths::ASREF_TRAIT).expect("failed to find `AsRef` trait");
-        let borrow_trait = get_trait_def_id(cx, &paths::BORROW_TRAIT).expect("failed to find `Borrow` trait");
+        //let borrow_trait = get_trait_def_id(cx, &paths::BORROW_TRAIT).expect("failed to find `Borrow` trait");
 
-        let preds: Vec<ty::Predicate> = {
+        let preds: Vec<ty::TraitPredicate> = {
             let parameter_env = ty::ParameterEnvironment::for_item(cx.tcx, node_id);
             traits::elaborate_predicates(cx.tcx, parameter_env.caller_bounds.clone())
                 .filter(|p| !p.is_global())
+                .filter_map(|pred| if let ty::Predicate::Trait(ty::Binder(trait_ref)) = pred {
+                    Some(trait_ref)
+                } else {
+                    None
+                })
                 .collect()
         };
 
@@ -88,30 +92,21 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for NeedlessPassByValue {
         let fn_sig = cx.tcx.liberate_late_bound_regions(param_env.free_id_outlive, fn_sig);
 
         for ((input, ty), arg) in decl.inputs.iter().zip(fn_sig.inputs()).zip(&body.arguments) {
-
-            // Determines whether `ty` implements `Borrow<U>` (U != ty) specifically.
-            // This is needed due to the `Borrow<T> for T` blanket impl.
-            let implements_borrow_trait = preds.iter()
-                .filter_map(|pred| if let ty::Predicate::Trait(ref poly_trait_ref) = *pred {
-                    Some(poly_trait_ref.skip_binder())
-                } else {
-                    None
-                })
-                .filter(|tpred| tpred.def_id() == borrow_trait && &tpred.self_ty() == ty)
-                .any(|tpred| &tpred.input_types().nth(1).expect("Borrow trait must have an parameter") != ty);
-
             if_let_chain! {[
                 !is_self(arg),
                 !ty.is_mutable_pointer(),
                 !is_copy(cx, ty, node_id),
                 !implements_trait(cx, ty, fn_trait, &[], Some(node_id)),
-                !implements_trait(cx, ty, asref_trait, &[], Some(node_id)),
-                !implements_borrow_trait,
+                // !implements_trait(cx, ty, asref_trait, &[], Some(node_id)),
 
                 let PatKind::Binding(mode, defid, ..) = arg.pat.node,
                 !moved_vars.contains(&defid),
+
+                // Give up if `ty` implements a trait which is also implemented for some `&T`.
+                !preds.iter()
+                    .filter(|tpred| &tpred.self_ty() == ty)
+                    .any(|tpred| is_trait_implemented_for_ref(cx, tpred.def_id())),
             ], {
-                // Note: `toplevel_ref_arg` warns if `BindByRef`
                 let m = match mode {
                     BindingMode::BindByRef(m) | BindingMode::BindByValue(m) => m,
                 };
@@ -294,4 +289,16 @@ fn unwrap_downcast_or_interior(mut cmt: mc::cmt) -> mc::cmt {
             _ => return cmt,
         }
     }
+}
+
+/// Checks if given trait is implemented for `&T`.
+fn is_trait_implemented_for_ref<'a, 'tcx>(cx: &LateContext<'a, 'tcx>, def_id: DefId) -> bool {
+    cx.tcx.populate_implementations_for_trait_if_necessary(def_id);
+    let trait_def = cx.tcx.lookup_trait_def(def_id);
+    let mut impl_for_ref = false;
+    trait_def.for_each_impl(cx.tcx, |impl_id| {
+        let imp = cx.tcx.impl_trait_ref(impl_id).expect("trait impl is not found");
+        impl_for_ref |= imp.self_ty().is_region_ptr();
+    });
+    impl_for_ref
 }
