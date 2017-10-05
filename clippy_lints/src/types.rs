@@ -182,21 +182,19 @@ fn check_ty(cx: &LateContext, ast_ty: &hir::Ty, is_local: bool) {
             match *qpath {
                 QPath::Resolved(Some(ref ty), ref p) => {
                     check_ty(cx, ty, is_local);
-                    for ty in p.segments
-                        .iter()
-                        .flat_map(|seg| seg.parameters.as_ref()
-                                           .map_or_else(|| [].iter(),
-                                                        |params| params.types.iter()))
-                    {
+                    for ty in p.segments.iter().flat_map(|seg| {
+                        seg.parameters
+                            .as_ref()
+                            .map_or_else(|| [].iter(), |params| params.types.iter())
+                    }) {
                         check_ty(cx, ty, is_local);
                     }
                 },
-                QPath::Resolved(None, ref p) => for ty in p.segments
-                    .iter()
-                    .flat_map(|seg| seg.parameters.as_ref()
-                                       .map_or_else(|| [].iter(),
-                                                    |params| params.types.iter()))
-                {
+                QPath::Resolved(None, ref p) => for ty in p.segments.iter().flat_map(|seg| {
+                    seg.parameters
+                        .as_ref()
+                        .map_or_else(|| [].iter(), |params| params.types.iter())
+                }) {
                     check_ty(cx, ty, is_local);
                 },
                 QPath::TypeRelative(ref ty, ref seg) => {
@@ -605,7 +603,7 @@ fn span_lossless_lint(cx: &LateContext, expr: &Expr, op: &Expr, cast_from: Ty, c
     let opt = snippet_opt(cx, op.span);
     let sugg = if let Some(ref snip) = opt {
         if should_strip_parens(op, snip) {
-            &snip[1..snip.len()-1]
+            &snip[1..snip.len() - 1]
         } else {
             snip.as_str()
         }
@@ -1446,6 +1444,100 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for InvalidUpcastComparisons {
 
             upcast_comparison_bounds_err(cx, &expr.span, rel, lhs_bounds, normalized_lhs, normalized_rhs, false);
             upcast_comparison_bounds_err(cx, &expr.span, rel, rhs_bounds, normalized_rhs, normalized_lhs, true);
+        }
+    }
+}
+
+/// **What it does:** Checks for impls for trait object types.
+///
+/// **Why is this bad?** Adding methods for a trait object type is rarely
+/// intended. You probably intended to write a blanket impl for types that
+/// implement the trait.
+///
+/// **Known problems:** False-positive if you really intended to do this.
+///
+/// **Example:**
+/// ```rust
+/// trait Foo {}
+///
+/// impl Foo {
+///     fn bar(&self) {
+///         /* whatever */
+///     }
+/// }
+/// ```
+declare_lint! {
+    pub IMPL_ON_TRAIT_OBJECT,
+    Warn,
+    "an inherent impl for a trait object type"
+}
+
+pub struct ImplOnTraitObject;
+
+impl LintPass for ImplOnTraitObject {
+    fn get_lints(&self) -> LintArray {
+        lint_array!(IMPL_ON_TRAIT_OBJECT)
+    }
+}
+
+impl<'a, 'tcx> LateLintPass<'a, 'tcx> for ImplOnTraitObject {
+    fn check_item(&mut self, cx: &LateContext<'a, 'tcx>, item: &'tcx Item) {
+        if let ItemImpl(_, _, _, ref generics, ref tr, ref ty, _) = item.node {
+            if let TyTraitObject(ref tr_ref, _) = ty.node {
+                let generics_snip = snippet(cx, generics.span, "");
+                let generics_snip = if generics_snip.is_empty() {
+                    ""
+                } else {
+                    &generics_snip[1..generics_snip.len() - 1]
+                };
+
+                let typaram_name = (b'T'..b'Z' + 1)
+                    .chain(b'A'..b'T')
+                    .map(|c| c as char)
+                    .find(|c| {
+                        !generics
+                            .ty_params
+                            .iter()
+                            .any(|p| p.name.as_str().chars().eq(::std::iter::once(*c)))
+                    })
+                    .unwrap_or('?');
+
+                let sugg = if let Some(ref tr) = *tr {
+                    format!(
+                        "impl<{}{}{tpname}: {selftrname} + ?Sized> {trname} for {tpname}",
+                        generics_snip,
+                        if generics_snip.is_empty() { "" } else { ", " },
+                        trname = snippet(cx, tr.path.span, "<Trait>"),
+                        selftrname = snippet(
+                            cx,
+                            tr_ref
+                                .first()
+                                .expect("empty trait ref")
+                                .span
+                                .with_hi(tr_ref.last().expect("empty trait ref").span.hi()),
+                            "<Trait>",
+                        ),
+                        tpname = typaram_name
+                    )
+                } else {
+                    format!(
+                        "impl<{}{}{tpname}> {trname} for {tpname}",
+                        generics_snip,
+                        if generics_snip.is_empty() { "" } else { ", " },
+                        trname = snippet(cx, tr_ref.first().expect("empty trait ref").span, "<Trait>",),
+                        tpname = typaram_name
+                    )
+                };
+
+                span_lint_and_sugg(
+                    cx,
+                    IMPL_ON_TRAIT_OBJECT,
+                    item.span.with_hi(ty.span.hi()),
+                    "this adds a method to a trait object type, which is rarely intended",
+                    "consider a blanket impl instead",
+                    sugg,
+                );
+            }
         }
     }
 }

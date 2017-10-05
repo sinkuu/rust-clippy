@@ -1,0 +1,20 @@
+error: this adds a method to a trait object type, which is rarely intended
+ --> $DIR/impl_on_trait_object.rs:7:1
+  |
+7 | impl Foo {
+  | ^^^^^^^^ help: consider a blanket impl instead: `impl<T> Foo for T`
+  |
+  = note: `-D impl-on-trait-object` implied by `-D warnings`
+
+error: this adds a method to a trait object type, which is rarely intended
+  --> $DIR/impl_on_trait_object.rs:15:1
+   |
+15 | impl<T> Bar<T> + Sync {
+   | ^^^^^^^^^^^^^^^^^^^^^ help: consider a blanket impl instead: `impl<T, U> Bar<T> for U`
+
+error: this adds a method to a trait object type, which is rarely intended
+  --> $DIR/impl_on_trait_object.rs:23:1
+   |
+23 | impl<'a> FooExtensions for Foo + Sync + 'a {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider a blanket impl instead: `impl<'a, T: Foo + Sync + ?Sized> FooExtensions for T`
+
