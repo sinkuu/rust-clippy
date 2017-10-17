@@ -56,6 +56,10 @@ struct ExVisitor<'a, 'tcx: 'a> {
 
 impl<'a, 'tcx: 'a> Visitor<'tcx> for ExVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr) {
+        if in_macro(expr.span) {
+            return;
+        }
+
         if let ExprClosure(_, _, eid, _, _) = expr.node {
             let body = self.cx.tcx.hir.body(eid);
             let ex = &body.value;
@@ -124,6 +128,9 @@ impl<'a, 'tcx> LateLintPass<'a, 'tcx> for BlockInIfCondition {
                 };
                 walk_expr(&mut visitor, check);
                 if let Some(block) = visitor.found_block {
+                    if differing_macro_contexts(expr.span, block.span) {
+                        return;
+                    }
                     span_lint(cx, BLOCK_IN_IF_CONDITION_STMT, block.span, COMPLEX_BLOCK_MESSAGE);
                 }
             }

@@ -18,12 +18,23 @@ macro_rules! blocky_too {
     }}
 }
 
+macro_rules! takes_cond {
+    ($cond:expr) => {
+        if $cond {
+        }
+    };
+}
+
 fn macro_if() {
     if blocky!() {
     }
 
     if blocky_too!() {
     }
+
+    takes_cond!([0].iter().all(|_| {
+        true
+    }));
 }
 
 fn condition_has_block() -> i32 {
