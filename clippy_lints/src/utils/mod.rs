@@ -79,33 +79,36 @@ pub fn in_macro(span: Span) -> bool {
 ///
 /// See also the `paths` module.
 pub fn match_def_path(tcx: TyCtxt<'_, '_, '_>, def_id: DefId, path: &[&str]) -> bool {
-    use crate::syntax::symbol;
-
     #[derive(Debug)]
-    struct AbsolutePathBuffer {
-        names: Vec<symbol::LocalInternedString>,
+    struct PathMatcher<'a> {
+        path: &'a [&'a str],
+        equal: bool,
     }
 
-    impl ty::item_path::ItemPathBuffer for AbsolutePathBuffer {
+    impl<'a> ty::item_path::ItemPathBuffer for PathMatcher<'a> {
         fn root_mode(&self) -> &ty::item_path::RootMode {
-            const ABSOLUTE: &ty::item_path::RootMode = &ty::item_path::RootMode::Absolute;
-            ABSOLUTE
+            &ty::item_path::RootMode::Absolute
         }
 
         fn push(&mut self, text: &str) {
-            self.names.push(symbol::Symbol::intern(text).as_str());
+            self.equal = self.equal && match self.path.split_first() {
+                Some((first, rest)) if *first == text => {
+                    self.path = rest;
+                    true
+                }
+                _ => false,
+            };
         }
     }
 
-    let mut apb = AbsolutePathBuffer { names: vec![] };
+    let mut m = PathMatcher {
+        path,
+        equal: true,
+    };
 
-    tcx.push_item_path(&mut apb, def_id, false);
+    tcx.push_item_path(&mut m, def_id, false);
 
-    apb.names.len() == path.len()
-        && apb.names
-            .into_iter()
-            .zip(path.iter())
-            .all(|(a, &b)| *a == *b)
+    m.equal && m.path.is_empty()
 }
 
 /// Check if type is struct, enum or union type with given def path.
