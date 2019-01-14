@@ -140,4 +140,13 @@ fn main() {
         true
         | false,
     ];
+
+    macro_rules! gen_if {
+        ($cond:expr, $then:block $else_:block) => {
+            if $cond $then
+            else $else_
+        };
+    }
+    // Don't lint if `else` does not exist between "then" span and "else" span.
+    gen_if!(true, { () } { () });
 }
