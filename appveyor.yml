@@ -30,6 +30,7 @@ install:
 build: false
 
 test_script:
+    - cargo -V
     - set RUST_BACKTRACE=1
     - cargo build --features debugging
     - cargo test --features debugging
