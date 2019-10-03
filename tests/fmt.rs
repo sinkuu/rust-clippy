@@ -10,6 +10,8 @@ fn fmt() {
     println!("cargo_home: {}", std::env::var("CARGO_HOME").unwrap());
     println!("userprofile: {}", std::env::var("USERPROFILE").unwrap());
 
+    println!("where cargo: {}", String::from_utf8_lossy(&Command::new("where").arg("cargo").output().unwrap().stdout));
+
     // Skip this test if rustup nightly is unavailable
     let rustup_output = Command::new("rustup")
         .args(&["component", "list", "--toolchain", "nightly"])
