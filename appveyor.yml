@@ -31,9 +31,13 @@ install:
 build: false
 
 test_script:
-    - cargo -V
+    - cargo +master -V
     - set RUST_BACKTRACE=1
     - cargo build --features debugging
+    - dir C:\projects\rust-clippy\target\debug\deps
+    - dir C:\projects\rust-clippy\target\debug
+    - dir C:\Users\appveyor\.rustup\toolchains\master\bin
+    - dir C:\Users\appveyor\.cargo\bin
     - cargo test --features debugging
 
 notifications:
