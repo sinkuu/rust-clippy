@@ -15,6 +15,9 @@ enum UpdateMode {
 }
 
 fn main() {
+    println!("path: {}", std::env::var("PATH").unwrap());
+    println!("cargo: {}", String::from_utf8_lossy(&std::process::Command::new("where").arg("cargo").output().unwrap().stdout));
+
     let matches = App::new("Clippy developer tooling")
         .subcommand(
             SubCommand::with_name("fmt")
