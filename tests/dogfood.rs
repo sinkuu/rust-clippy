@@ -1,4 +1,5 @@
 #[test]
+#[ignore]
 fn dogfood_clippy() {
     // run clippy on itself and fail the test if lint warnings are reported
     if option_env!("RUSTC_TEST_SUITE").is_some() || cfg!(windows) {

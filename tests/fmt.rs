@@ -6,6 +6,8 @@ fn fmt() {
         return;
     }
 
+    println!("path: {}", std::env::var("PATH").unwrap());
+
     // Skip this test if rustup nightly is unavailable
     let rustup_output = Command::new("rustup")
         .args(&["component", "list", "--toolchain", "nightly"])

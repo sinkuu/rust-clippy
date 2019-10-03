@@ -155,6 +155,7 @@ fn prepare_env() {
 }
 
 #[test]
+#[ignore]
 fn compile_test() {
     prepare_env();
     run_mode("ui", "tests/ui".into());
