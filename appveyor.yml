@@ -12,6 +12,7 @@ branches:
       - master
 
 install:
+    - echo %USERPROFILE%
     - curl -sSf -o rustup-init.exe https://win.rustup.rs/
     - rustup-init.exe -y --default-host %TARGET% --default-toolchain nightly
     - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin

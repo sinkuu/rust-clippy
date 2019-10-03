@@ -7,6 +7,7 @@ fn fmt() {
     }
 
     println!("path: {}", std::env::var("PATH").unwrap());
+    println!("cargo_home: {}", std::env::var("CARGO_HOME").unwrap());
 
     // Skip this test if rustup nightly is unavailable
     let rustup_output = Command::new("rustup")
