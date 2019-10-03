@@ -16,7 +16,7 @@ fn fmt() {
 
     // Skip this test if rustup nightly is unavailable
     let rustup_output = Command::new("rustup")
-        .args(&["component", "list", "--toolchain", "nightly"])
+        .args(&["component", "list", "--toolchain", "nightly-2019-10-01"])
         .output()
         .unwrap();
     assert!(rustup_output.status.success());
@@ -29,7 +29,7 @@ fn fmt() {
     let dev_dir = root_dir.join("clippy_dev");
     let output = Command::new("cargo")
         .current_dir(dev_dir)
-        .args(&["+nightly", "run", "--", "fmt", "--check"])
+        .args(&["+nightly-2019-10-01", "run", "--", "fmt", "--check"])
         .output()
         .unwrap();
 
