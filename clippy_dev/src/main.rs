@@ -16,6 +16,8 @@ enum UpdateMode {
 
 fn main() {
     println!("path: {}", std::env::var("PATH").unwrap());
+    println!("userprofile: {}", std::env::var("USERPROFILE").unwrap());
+    println!("cargo home: {}", std::env::var("CARGO_HOME").unwrap());
     println!("cargo: {}", String::from_utf8_lossy(&std::process::Command::new("where").arg("cargo").output().unwrap().stdout));
 
     let matches = App::new("Clippy developer tooling")
