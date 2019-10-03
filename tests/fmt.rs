@@ -12,6 +12,8 @@ fn fmt() {
 
     println!("where cargo: {}", String::from_utf8_lossy(&Command::new("where").arg("cargo").output().unwrap().stdout));
 
+    println!("cargo home: {}", home::cargo_home().unwrap().display());
+
     // Skip this test if rustup nightly is unavailable
     let rustup_output = Command::new("rustup")
         .args(&["component", "list", "--toolchain", "nightly"])
