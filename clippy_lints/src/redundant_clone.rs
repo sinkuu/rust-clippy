@@ -364,6 +364,11 @@ impl<'tcx> mir::visit::Visitor<'tcx> for LocalUseVisitor {
         let statements = &data.statements;
         for (statement_index, statement) in statements.iter().enumerate() {
             self.visit_statement(statement, mir::Location { block, statement_index });
+
+            if self.used.1 && self.consumed_or_mutated.1 {
+                // Flagged both, skip remaining statements.
+                return;
+            }
         }
 
         self.visit_terminator(
